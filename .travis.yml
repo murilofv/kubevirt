@@ -6,8 +6,7 @@ services:
 - docker
 
 arch:
-- amd64
-# - ppc64le # temporary disable until we have it under control again
+- ppc64le
 
 os: linux
 
@@ -15,7 +14,7 @@ install:
 - git reset --hard
 
 script:
-- make generate
+- while sleep 9m; do echo "keep alive"; done & make generate
 - if [[ -n "$(git status --porcelain)" ]] ; then echo "It seems like you need to run
   `make generate`. Please run it and commit the changes"; git status --porcelain; false; fi
 - if diff <(git grep -c '') <(git grep -cI '') | egrep -v -e 'docs/.*\.png|swagger-ui' -e 'vendor/*' -e 'assets/*'
@@ -25,11 +24,7 @@ script:
   `make`. Please run it and commit the changes"; git status --porcelain; false; fi
 - make build-verify # verify that we set version on the packages built by bazel
 # The make bazel-test might take longer then the current timeout for a command in Travis-CI of 10 min, so adding a keep alive loop while it runs
-- |
-  while sleep 9m; do echo "Long running job - keep alive"; done &
-  LOOP_PID=$!
 - if [[ $TRAVIS_REPO_SLUG == "kubevirt/kubevirt" && $TRAVIS_CPU_ARCH == "amd64" ]]; then make goveralls; else make bazel-test; fi
-- kill $LOOP_PID
 - make build-verify # verify that we set version on the packages built by go(goveralls depends on go-build target)
 - make apidocs
 - make client-python
@@ -130,10 +125,3 @@ env:
   - secure: dgqV8rjscJmensslnxAyjgFqWMffZwQYAAObtuJdpPwdyGBSCA9LUH0J++raGo++35JzbyGukdGZgKBAUVKyydFcStmIUfi7dB2eljMYU8dnTvlDWEP6PwhuQXdDDjbDqCDAWH8mfjza4qFw/XgHXw+dy2EikMKewE6IzfUquk3xyfkh3mutNTETu7E78yKfxh4bDejyakaJKADFzm2hvhJv/+pzkJuALGbG4v7qW1inW6/Qug+QK8ZYIIaNM/UmZOVgcnrt4+3UcCS2NS3bMFdibAZKNQVD6g0Jht+S6/RQIhT4zaW7eaKDAKhjUETKbZ4Xv/77h6huwAy9DxtKu/gWQ/7rp1xt6JU3oheVV705qxvA8mm7P61rqe4GaanTyOWQuIvKteVxIHuZKGkrtQS4Own3lgydLmkgM7u3cR33JA4tolZcf2kWXRFU8vwOlCM8Vsb7NJfu/yJ/0xuFJ/HNO6FLUZz3p2M2wW6WY17V0YKE7KXXiKhj3rv3RbsFBFfGiTXyk/nk0czQhA9e/87JepTTlZf3R9QSLoHs+cR4fEE+oAZOyAUeU5N1C703772YEjrxtXczE3qm4dUFS7UXNcjeYjWsLpMSbuqa49yYPMPCynu5ohSTTwjhweRFSJf7xmp18t3bMfGKiHx8rBCqCNDpC6fuTM5v/C5c1K4=
   # DOCKER_USER
   - secure: GDzAdyMI1IssB8je9PsidxUJ55Bp2+gTKh0bB+Syy50BWz81yxWsK0oHvM65h1DTPKv30lnwAvaOLy21uEBBuWNoyCCkMIdc9HeUwpi+Ilex9D84vDtf5c4tx3pIxpzNPOfm/7wWQDYI9o2eeGIY0B3WGufiUlelWC3i1Uq3r2OTfufxwMpwIyuHydU8VOvyromdiZ2VNZcCAmrpVONd+UBmxrvJoIINVN80XH7tlpSfdKC70VJGLyp3bwSPBHl8LkI1nkEwMB+1La+EPYmfE4hfHDiAeRYqiIEKR9VYmjh2O6Lo8VDMebLzC/kH8S1zQt71PN/Oknqu60jenPMz6gr4sKt17uE4+BH+7Ef+jp4uFqwYV7rGCg7vbE/fE3nW2GBcpXCNZZsVvKg+u3TrquvssszUZyNQmy2NOoeqdM6F4D1h5mqhyp/Rrg5VFpiwN92CLI0yfoCPHbZcLs8DLcZuxTDVhjoatUnTUs68hPFaY0q9SpFwRAsb6tVyuoMG2fHpBd7oZCZVrnQzHslrFulpzVqbm28x+jrPVBRTGmak79eZrckQ92FyLQQONiYP6g+V9dMiJ4tho4P5U84z2Ty8IQZTC7UDw+2ZpVNNud+NTGSal/K+eJ1XzPRDO0N3qZ6uOQG1kOkIn29Kh7/PqxLEcbZf4Ay5sL4IwzTrmx4=
-
-notifications:
-  irc:
-    channels:
-      - "chat.freenode.net#kubevirt"
-    on_success: change
-    on_failure: always
